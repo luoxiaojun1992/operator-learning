@@ -1,0 +1,12 @@
+apiVersion: monitor.example.com/v1alpha1
+kind: Pod
+metadata:
+  labels:
+    app.kubernetes.io/name: pod
+    app.kubernetes.io/instance: pod-sample
+    app.kubernetes.io/part-of: operator-learning
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator-learning
+  name: pod-sample
+spec:
+  # TODO(user): Add fields here
