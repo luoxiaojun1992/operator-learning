@@ -36,13 +36,13 @@ type PodSpec struct {
 type PodStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Metric string `json:"metric,omitempty"`
+	Result string `json:"result,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:printcolumn:JSONPath=".spec.foo",name=Metric Name,type=string
-//+kubebuilder:printcolumn:JSONPath=".status.foo",name=Metric Value,type=string
+//+kubebuilder:printcolumn:JSONPath=".spec.foo",name=Metric Config,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.result",name=Result,type=string
 
 // Pod is the Schema for the pods API
 type Pod struct {

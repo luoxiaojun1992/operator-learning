@@ -17,10 +17,10 @@ spec:
   versions:
   - additionalPrinterColumns:
     - jsonPath: .spec.foo
-      name: Metric Name
+      name: Metric Config
       type: string
-    - jsonPath: .status.foo
-      name: Metric Value
+    - jsonPath: .status.result
+      name: Result
       type: string
     name: v1alpha1
     schema:
@@ -50,7 +50,7 @@ spec:
           status:
             description: PodStatus defines the observed state of Pod
             properties:
-              metric:
+              result:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
                   of cluster Important: Run "make" to regenerate code after modifying
                   this file'

@@ -19,6 +19,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	v1 "k8s.io/api/apps/v1"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -56,10 +57,23 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		fmt.Printf("Error getting instance: %s", err)
 	}
 
-	instance.Status.Metric = "123456"
+	metricConfig := instance.Spec.Metric
+
+	if metricConfig == "foo" {
+		monitor := &v1.Deployment{
+			//todo
+		}
+		err = r.Client.Create(ctx, monitor)
+		if err != nil {
+			fmt.Printf("Error creating monitor: %s", err)
+			instance.Status.Result = "Failed"
+		}
+		instance.Status.Result = "Successful"
+	}
+
 	err = r.Client.Status().Update(ctx, instance)
 	if err != nil {
-		fmt.Printf("Error getting instance: %s", err)
+		fmt.Printf("Error updating instance: %s", err)
 	}
 
 	return ctrl.Result{}, nil
@@ -69,5 +83,6 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 func (r *PodReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&monitorv1alpha1.Pod{}).
+		Owns(&v1.Deployment{}).
 		Complete(r)
 }
