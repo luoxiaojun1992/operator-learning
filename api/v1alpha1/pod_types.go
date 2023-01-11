@@ -29,17 +29,20 @@ type PodSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// Foo is an example field of Pod. Edit pod_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Metric string `json:"metric,omitempty"`
 }
 
 // PodStatus defines the observed state of Pod
 type PodStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Metric string `json:"metric,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:JSONPath=".spec.foo",name=Metric Name,type=string
+//+kubebuilder:printcolumn:JSONPath=".status.foo",name=Metric Value,type=string
 
 // Pod is the Schema for the pods API
 type Pod struct {

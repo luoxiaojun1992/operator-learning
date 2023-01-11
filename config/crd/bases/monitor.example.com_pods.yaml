@@ -15,7 +15,14 @@ spec:
     singular: pod
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - additionalPrinterColumns:
+    - jsonPath: .spec.foo
+      name: Metric Name
+      type: string
+    - jsonPath: .status.foo
+      name: Metric Value
+      type: string
+    name: v1alpha1
     schema:
       openAPIV3Schema:
         description: Pod is the Schema for the pods API
@@ -35,13 +42,19 @@ spec:
           spec:
             description: PodSpec defines the desired state of Pod
             properties:
-              foo:
+              metric:
                 description: Foo is an example field of Pod. Edit pod_types.go to
                   remove/update
                 type: string
             type: object
           status:
             description: PodStatus defines the observed state of Pod
+            properties:
+              metric:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: string
             type: object
         type: object
     served: true

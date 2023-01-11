@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -49,7 +50,17 @@ type PodReconciler struct {
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	_ = log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	instance := &monitorv1alpha1.Pod{}
+	err := r.Client.Get(ctx, req.NamespacedName, instance)
+	if err != nil {
+		fmt.Printf("Error getting instance: %s", err)
+	}
+
+	instance.Status.Metric = "123456"
+	err = r.Client.Status().Update(ctx, instance)
+	if err != nil {
+		fmt.Printf("Error getting instance: %s", err)
+	}
 
 	return ctrl.Result{}, nil
 }
