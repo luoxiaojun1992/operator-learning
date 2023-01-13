@@ -61,8 +61,8 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	metricConfig := instance.Spec.Metric
-	appName := instance.Name + "." + metricConfig
+	componentName := instance.Spec.Component
+	appName := instance.Name + "." + componentName
 
 	// Check whether the monitor component exists
 	monitorExisted, err := r.monitorComponentExisted(ctx, appName, instance.Namespace)

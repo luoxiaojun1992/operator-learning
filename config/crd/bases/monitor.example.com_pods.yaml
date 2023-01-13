@@ -16,8 +16,8 @@ spec:
   scope: Namespaced
   versions:
   - additionalPrinterColumns:
-    - jsonPath: .spec.foo
-      name: Metric Config
+    - jsonPath: .spec.component
+      name: Component
       type: string
     - jsonPath: .status.result
       name: Result
@@ -42,7 +42,7 @@ spec:
           spec:
             description: PodSpec defines the desired state of Pod
             properties:
-              metric:
+              component:
                 description: Foo is an example field of Pod. Edit pod_types.go to
                   remove/update
                 type: string
