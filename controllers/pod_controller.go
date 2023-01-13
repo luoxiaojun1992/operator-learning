@@ -81,6 +81,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 			}
 		}
 
+		// Create the monitor component if no monitor component
 		if !monitorExisted {
 			var replicas int32 = 1
 			appLabels := map[string]string{"app": appName}
