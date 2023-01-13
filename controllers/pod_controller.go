@@ -63,6 +63,7 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 
 	metricConfig := instance.Spec.Metric
 
+	// Deploy monitor components
 	if metricConfig == "grafana" {
 		appName := instance.Name + "." + metricConfig
 
