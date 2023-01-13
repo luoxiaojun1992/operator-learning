@@ -19,7 +19,11 @@ package controllers
 import (
 	"context"
 	"fmt"
-	v1 "k8s.io/api/apps/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -41,7 +45,6 @@ type PodReconciler struct {
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
 // the Pod object against the actual cluster state, and then
 // perform operations to make the cluster state reflect the state specified by
 // the user.
@@ -49,31 +52,84 @@ type PodReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.13.0/pkg/reconcile
 func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	logger := log.FromContext(ctx)
 
 	instance := &monitorv1alpha1.Pod{}
 	err := r.Client.Get(ctx, req.NamespacedName, instance)
 	if err != nil {
-		fmt.Printf("Error getting instance: %s", err)
+		logger.Error(err, fmt.Sprintf("Error while getting instance: %s", err))
+		return ctrl.Result{}, err
 	}
 
 	metricConfig := instance.Spec.Metric
 
-	if metricConfig == "foo" {
-		monitor := &v1.Deployment{
-			//todo
+	if metricConfig == "grafana" {
+		appName := instance.Name + "." + metricConfig
+
+		// Check whether the monitor component exists
+		monitorExisted := true
+		existedMonitor := &appsv1.Deployment{}
+		if err := r.Get(ctx, types.NamespacedName{
+			Name:      appName,
+			Namespace: instance.Namespace,
+		}, existedMonitor); err != nil {
+			if errors.IsNotFound(err) {
+				monitorExisted = false
+			} else {
+				logger.Error(err, fmt.Sprintf("Error while getting existed monitor: %s", err))
+				return ctrl.Result{}, err
+			}
 		}
-		err = r.Client.Create(ctx, monitor)
-		if err != nil {
-			fmt.Printf("Error creating monitor: %s", err)
-			instance.Status.Result = "Failed"
+
+		if !monitorExisted {
+			var replicas int32 = 1
+			appLabels := map[string]string{"app": appName}
+			monitor := &appsv1.Deployment{
+				ObjectMeta: metav1.ObjectMeta{
+					Name:      appName,
+					Namespace: instance.Namespace,
+				},
+				Spec: appsv1.DeploymentSpec{
+					Replicas: &replicas,
+					Selector: &metav1.LabelSelector{
+						MatchLabels: appLabels,
+					},
+					Template: corev1.PodTemplateSpec{
+						ObjectMeta: metav1.ObjectMeta{
+							Labels: appLabels,
+						},
+						Spec: corev1.PodSpec{
+							Containers: []corev1.Container{
+								{
+									Name:  "grafana",
+									Image: "grafana/grafana",
+									Ports: []corev1.ContainerPort{
+										{
+											ContainerPort: 3000,
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			}
+			err = r.Client.Create(ctx, monitor)
+			if err != nil {
+				logger.Error(err, fmt.Sprintf("Error while creating monitor: %s", err))
+				return ctrl.Result{}, err
+			}
+			return ctrl.Result{
+				Requeue: true,
+			}, nil
 		}
-		instance.Status.Result = "Successful"
 	}
 
+	instance.Status.Result = "Successful"
 	err = r.Client.Status().Update(ctx, instance)
 	if err != nil {
-		fmt.Printf("Error updating instance: %s", err)
+		logger.Error(err, fmt.Sprintf("Error while updating instance: %s", err))
+		return ctrl.Result{}, err
 	}
 
 	return ctrl.Result{}, nil
@@ -83,6 +139,6 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 func (r *PodReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&monitorv1alpha1.Pod{}).
-		Owns(&v1.Deployment{}).
+		Owns(&appsv1.Deployment{}).
 		Complete(r)
 }

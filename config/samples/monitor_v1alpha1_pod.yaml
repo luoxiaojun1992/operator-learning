@@ -9,4 +9,4 @@ metadata:
     app.kubernetes.io/created-by: operator-learning
   name: pod-sample
 spec:
-  metric: foo
+  metric: grafana
