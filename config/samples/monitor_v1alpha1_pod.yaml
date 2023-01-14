@@ -8,5 +8,6 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: operator-learning
   name: pod-sample
+  namespace: operator-learning-monitor
 spec:
   component: grafana
