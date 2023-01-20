@@ -20,6 +20,7 @@ import (
 	"context"
 	"fmt"
 	"k8s.io/apimachinery/pkg/util/intstr"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -81,6 +82,11 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 
 		monitorDeploy := r.monitorComponentDeployment(appName, instance.Namespace, 1)
+		if err := controllerutil.SetControllerReference(instance, monitorDeploy, r.Scheme); err != nil {
+			_ = r.updateInstanceStatus(ctx, instance, "Failed to bind monitor deploy")
+			logger.Error(err, fmt.Sprintf("Error while binding monitor deploy: %s", err))
+			return ctrl.Result{}, err
+		}
 		if err := r.Client.Create(ctx, monitorDeploy); err != nil {
 			_ = r.updateInstanceStatus(ctx, instance, "Failed to create monitor deploy")
 			logger.Error(err, fmt.Sprintf("Error while creating monitor deploy: %s", err))
@@ -109,6 +115,11 @@ func (r *PodReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 		}
 
 		monitorSvc := r.monitorComponentService(appName, instance.Namespace)
+		if err := controllerutil.SetControllerReference(instance, monitorSvc, r.Scheme); err != nil {
+			_ = r.updateInstanceStatus(ctx, instance, "Failed to bind monitor svc")
+			logger.Error(err, fmt.Sprintf("Error while binding monitor svc: %s", err))
+			return ctrl.Result{}, err
+		}
 		if err := r.Client.Create(ctx, monitorSvc); err != nil {
 			_ = r.updateInstanceStatus(ctx, instance, "Failed to create monitor svc")
 			logger.Error(err, fmt.Sprintf("Error while creating monitor svc: %s", err))
